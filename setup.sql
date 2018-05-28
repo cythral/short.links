@@ -1,0 +1,7 @@
+DROP TABLE IF EXISTS `links`;
+
+CREATE TABLE `links` (
+    `source` VARCHAR(180) NOT NULL PRIMARY KEY,
+    `destination` VARCHAR(2083) NOT NULL,
+    `clicks` BIGINT(20) unsigned DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;
