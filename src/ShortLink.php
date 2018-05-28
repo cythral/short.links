@@ -9,6 +9,8 @@ use \Phroses\Database\Queries\UpdateQuery;
 use \Phroses\Database\Queries\InsertQuery;
 use \Phroses\Database\Queries\SelectQuery;
 
+use function \Phroses\{ stringStartsWith };
+
 class ShortLink {
     private $db;
     private $properties;
@@ -47,6 +49,10 @@ class ShortLink {
     static public function create($source = null, $destination) {
         $db = Database::getInstance();
         $i = 3;
+
+        if(!stringStartsWith($destination, "http")) {
+            $destination = "http://".$destination;
+        }
 
         do {
             $source = $source ?? bin2hex(random_bytes(($i++ / 3) * 3));
