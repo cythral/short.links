@@ -37,15 +37,15 @@ class Controller {
 
                 $source = self::setupSource($_POST["source"] ?? null);
                 $url = ShortLink::create($source, $_POST["destination"]);
-                
-                $out->success(200, [ "link" => "/".$url->source ]);
 
-            } else $out->error("Method not supported");
+                self::$oh->success(200, [ "link" => "/".$url->source ]);
+
+            } else self::$oh->error("Method not supported");
         })
 
-        ->case(null, function() use ($out) {
+        ->case(null, function() {
             http_response_code(400);
-            $out->error("Endpoint not found", 400);
+            self::$oh->error("Endpoint not found", 400);
         });
     }
 
