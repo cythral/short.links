@@ -1,1 +1,4 @@
-{"name":"short.links","description":"A plugin for shortening links","url":"localhost","installed":true}
+{
+    "name":"short.links",
+    "description":"A plugin for shortening links"
+}

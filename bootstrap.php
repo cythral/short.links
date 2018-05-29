@@ -11,6 +11,7 @@ use const \reqc\{ URI, METHOD };
 
 if(!defined("reqc\URI")) define("reqc\URI", "");
 if(!defined("SL_ROOT")) define("SL_ROOT", __DIR__);
+if(!defined("SL_VERSION")) define("SL_VERSION", 2);
 
 spl_autoload_register(function($class) {
     $class = str_replace("Phroses\Plugins\Cythral\ShortLinks\\", "", $class);
@@ -21,9 +22,10 @@ spl_autoload_register(function($class) {
 });
 
 $config = $this->config;
+Controller::setup($config);
 
 Events::listen("route.follow", function($response, $method, $site, $page) use ($config) {
-    if($site->url == $this->config->url) {
+    if($site->url == $config->url) {
 
         (new Switcher($response))
 

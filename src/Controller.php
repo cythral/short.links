@@ -7,6 +7,13 @@ use \Phroses\JsonServer;
 use \Phroses\Switcher;
 
 class Controller {
+    static private $config;
+    static private $oh;
+
+    static public function setup($config) {
+        self::$config = $config;
+    }
+
     static public function goto($link) {
         $url = ShortLink::find($link);
 
@@ -19,34 +26,18 @@ class Controller {
         }
     }
 
-    static public function api($endpoint, $method, $config) {
-        $out = new JsonServer;
+    static public function api($endpoint, $method) {
+        self::$oh = new JsonServer;
 
         (new Switcher($endpoint))
 
-        ->case("/shorten", function() use ($out, $method, $config) {
+        ->case("/shorten", function() use ($method) {
             if(strtolower($method) == "post") {
+                self::checkWhiteList(new IP($_SERVER["REMOTE_ADDR"]));
 
-                // IP Whitelist
-                if(isset($config->whitelist)) {
-                    $ok = false;
-                    foreach($config->whitelist as $ip) {
-                        if((new IP($_SERVER["REMOTE_ADDR"]))->inRange($ip)) {
-                            $ok = true;
-                            break;
-                        }
-                    }
-
-                    if(!$ok) $out->error("Access denied.");
-                }
-
-                // Vanity URLs (/twitter, /facebook, etc.)
-                $source = $_POST["source"] ?? null;
-                if(isset($config->vanityPassword) && (!isset($_POST["vanityPassword"]) || $_POST["vanityPassword"] != $config->vanityPassword)) {
-                    $source = null;
-                }
-
+                $source = self::setupSource($_POST["source"] ?? null);
                 $url = ShortLink::create($source, $_POST["destination"]);
+                
                 $out->success(200, [ "link" => "/".$url->source ]);
 
             } else $out->error("Method not supported");
@@ -56,5 +47,29 @@ class Controller {
             http_response_code(400);
             $out->error("Endpoint not found", 400);
         });
+    }
+
+    static public function checkWhiteList(IP $ip) {
+        if(isset(self::$config->whitelist)) {
+            if(!self::ipInWhiteList($ip, self::$config->whitelist)) {
+                self::$oh->error("Access denied.");
+            }
+         }
+    }
+
+    static public function ipInWhiteList(IP $needle, array $haystack): bool {
+        foreach($haystack as $ip) {
+            if($needle->inRange($ip)) return true;
+        }
+
+        return false;
+    }
+
+    static public function setupSource($source) {
+        if(isset(self::$config->vanityPassword) && (!isset($_POST["vanityPassword"]) || $_POST["vanityPassword"] != self::$config->vanityPassword)) {
+            $source = null;
+        }
+        
+        return $source;
     }
 }
